@@ -1,68 +1,41 @@
-# WRO 2026 Robot – Engineering Project
+# WRO 2026 Robot
 
 ## Project Overview
 
 This project was developed for WRO 2026 using the LEGO SPIKE Prime platform.
 
-The goal of the robot is to autonomously leave the starting parking position, move along the competition field, detect and follow walls using a Distance Sensor, perform controlled right turns, detect the next wall, and continue navigating the course.
+The robot is designed to autonomously exit the starting parking position, follow the wall using a Distance Sensor, perform controlled right turns, detect the next wall, and continue navigating the course.
 
-The robot was developed through an iterative engineering process based on testing, observation, adjustment, and retesting. Instead of relying on one fixed movement sequence, several steering angles, driving distances, and speed values were tested and modified until the robot became more stable and predictable.
-
-The current system includes:
-
-- Steering control
-- Rear-wheel drive
-- Distance-based wall detection
-- Wall-following logic
-- Multi-step right corner execution
-- Parking exit sequence
-- Distance sensor calibration
-- Color sensing hardware for future red and green obstacle detection
-
-The obstacle avoidance strategy using the Color Sensor is still under physical testing and is not considered finalized.
+The robot was developed through repeated testing and calibration to improve steering accuracy, cornering, and wall detection.
 
 ---
 
-## Robot Platform
-
-The robot is built using the LEGO SPIKE Prime system.
-
-The design separates the steering system from the driving system. This allows the rear motor to control forward and reverse movement while a separate motor controls the steering angle.
-
-### Port Configuration
+## Hardware Configuration
 
 | Port | Component | Function |
 |---|---|---|
-| Port A | Steering Motor | Controls steering direction and steering angles |
-| Port B | Color Sensor | Detects field colors and markers |
-| Port C | Distance Sensor | Measures distance from walls and detects wall transitions |
-| Port E | Rear Drive Motor | Controls forward and reverse movement |
-
-The SPIKE Prime Hub acts as the main controller and power source for the robot.
+| A | Steering Motor | Controls steering |
+| B | Color Sensor | Detects colors and field markers |
+| C | Distance Sensor | Detects walls and measures distance |
+| E | Rear Drive Motor | Controls forward and reverse movement |
 
 ---
 
-## Mechanical Design
+## Steering Calibration
 
-The robot uses a dedicated steering mechanism controlled by the motor connected to Port A.
+The steering motor is connected to Port A.
 
-During testing, the steering position initially used:
+Initial setting:
 
 `STRAIGHT = 0`
 
-However, the robot showed a small drift toward the left.
+The robot slightly drifted to the left.
 
-The steering value was gradually adjusted until the robot achieved a more stable straight path.
-
-The final tested straight steering value is:
+After testing, the final calibrated value became:
 
 `STRAIGHT = -2`
 
-The rear drive motor is connected to Port E and provides the main driving force for the robot.
-
-The mechanical design was developed to allow steering adjustments independently from forward movement.
-
-Additional photographs and measurements of the final robot chassis, steering mechanism, drive mechanism, and sensor positions will be added after the final physical inspection of the robot.
+This gave the robot a more stable straight path.
 
 ---
 
@@ -70,41 +43,53 @@ Additional photographs and measurements of the final robot chassis, steering mec
 
 The Distance Sensor is connected to Port C.
 
-It is one of the main sensors used in the navigation strategy.
+It is used to:
 
-The sensor is used to:
-
-- Detect the wall
-- Measure the distance between the robot and the wall
-- Maintain an approximate target wall distance
+- Detect walls
+- Measure wall distance
+- Maintain approximately 20–30 cm from the wall
 - Detect when a wall disappears
-- Detect the next wall after a right turn
+- Detect the new wall after a corner
 
-The target wall-following range is approximately:
+During calibration:
 
-`20–30 cm`
+`14 cm actual distance = 140 mm sensor reading`
 
-### Distance Sensor Calibration
+---
 
-The sensor was tested independently by placing an object approximately 14 cm away from the sensor.
+## Parking Exit
 
-The sensor returned:
+After leaving the starting parking position, the robot:
 
-`140 mm`
+1. Recenters the steering.
+2. Drives straight for approximately 13 cm.
+3. Begins the right corner sequence.
 
-This confirmed that the readings used by the program are expressed in millimeters.
+---
 
-Example values:
+## Right Corner Strategy
 
-| Actual Distance | Sensor Reading |
-|---|---|
-| 14 cm | 140 mm |
-| 20 cm | approximately 200 mm |
-| 30 cm | approximately 300 mm |
+The final tested corner sequence is:
 
-A sensor reading of `-1` may occur when the Distance Sensor does not detect a valid surface.
+1. 55° steering + drive 8 cm
+2. 55° steering + drive 8 cm
+3. 55° steering + drive 8 cm
+4. 80° steering + drive 8 cm
 
-The program must therefore handle missing or invalid wall readings instead of assuming every reading represents a real wall.
+After these steps, the robot continues turning right until the Distance Sensor detects the new wall.
+
+The robot then stops and recenters the steering.
+
+### Important Settings
+
+- `STRAIGHT = -2`
+- `CORNER_STEP = 55`
+- `LAST_CORNER_STEP = 80`
+- `CORNER_STEP_DISTANCE_CM = 8`
+- `CORNER_SPEED = 400`
+- `STEERING_SPEED = 400`
+- `RECENTER_SPEED = 600`
+- `SEARCH_WALL_SPEED = 340`
 
 ---
 
@@ -112,89 +97,50 @@ The program must therefore handle missing or invalid wall readings instead of as
 
 The Color Sensor is connected to Port B.
 
-Its intended purpose is to detect colored field elements or markers, including red and green elements.
+It will be used for red and green field elements.
 
-The final obstacle avoidance behavior for the Color Sensor is still being tested.
-
-For this reason, the current engineering documentation does not claim that red and green obstacle avoidance is fully verified.
-
-The final strategy will be added only after successful physical testing.
+The final obstacle avoidance strategy is still under testing and will be added after successful physical testing.
 
 ---
 
-## Software Architecture
+## Testing Status
 
-The robot software is divided into separate functions so that each major movement or navigation task can be tested independently.
+Verified:
 
-Important functions include:
+- Distance Sensor calibration: 14 cm → 140 mm
+- Straight steering calibration: `STRAIGHT = -2`
+- Multi-step right corner configuration
+- Parking exit followed by 13 cm straight movement
 
-### `set_straight()`
+Still to be tested:
 
-Moves the steering mechanism back to the calibrated straight position.
-
-The current calibrated value is:
-
-`STRAIGHT = -2`
-
-### `drive_cm()`
-
-Converts a requested travel distance in centimeters into motor rotation for the rear drive motor.
-
-This allows movement commands to be described using physical distances rather than only motor degrees.
-
-### `exit_parking()`
-
-Executes the parking exit sequence.
-
-The parking maneuver was developed separately before being integrated into the complete navigation program.
-
-After leaving the parking area, the steering is returned to the straight position and the robot drives approximately:
-
-`13 cm`
-
-before beginning the next turning sequence.
-
-### `turn_right_until_wall()`
-
-Executes the tested multi-step right corner.
-
-The robot performs several controlled steering movements instead of one large immediate turn.
-
-After the turning sequence, the robot continues turning right until the Distance Sensor detects the new wall.
-
-The drive motor is then stopped and the steering is recentered.
+- Full lap
+- Final wall-following performance
+- Red and green obstacle avoidance
+- Final competition run
 
 ---
 
-## Final Right Corner Calibration
+## Documentation
 
-The right corner was one of the main areas of iterative development.
+The project documentation includes:
 
-An early approach using a single steering movement did not provide enough control.
+- Mechanical design
+- Wiring diagram
+- System architecture diagram
+- Program flowchart
+- Sensor calibration
+- Engineering decisions
+- Risk and failure analysis
+- Performance verification
+- Testing and iteration log
 
-The turn was therefore divided into multiple steering steps.
+---
 
-The final tested sequence is:
+## Project Status
 
-1. Steering step: `55°` → drive `8 cm`
-2. Steering step: `55°` → drive `8 cm`
-3. Steering step: `55°` → drive `8 cm`
-4. Steering step: `80°` → drive `8 cm`
+The robot is currently in the final development and testing stage.
 
-After the fourth step, the robot continues turning right while searching for the new wall.
+The Distance Sensor navigation and right-turn strategy have been developed.
 
-Once the Distance Sensor detects the new wall, the robot stops the drive motor and recenters the steering.
-
-### Current Corner Parameters
-
-```python
-STRAIGHT = -2
-
-CORNER_STEP = 55
-LAST_CORNER_STEP = 80
-CORNER_STEP_DISTANCE_CM = 8
-
-CORNER_SPEED = 400
-STEERING_SPEED = 400
-RECENTER_SPEED = 600
-SEARCH_WALL_SPEED = 340
+Full-course testing and Color Sensor obstacle avoidance are still in progress.
