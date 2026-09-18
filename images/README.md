@@ -1,17 +1,14 @@
 # Robot Images
 
-Final robot photographs will be added after the robot is available for physical inspection.
+This folder contains photographs of the final WRO 2026 robot, including:
 
-Required images:
-
-- Front view of the robot
-- Side view of the robot
-- Top view of the robot
+- Top view
+- Front view
+- Side view
+- Rear view
 - Steering mechanism
-- Rear drive mechanism
-- Distance Sensor – Port C
-- Color Sensor – Port B
-- Sensor mounting positions
-- Robot positioned on the WRO field
+- Distance Sensor
+- Color Sensor
+- Robot dimensions
 
-These images will be used to document the mechanical design, sensor placement, and final robot configuration.
+These images are used in the main project README to document the robot design, sensor placement, and mechanical configuration.
